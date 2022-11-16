@@ -1,12 +1,16 @@
 import 'dart:async';
 
+import 'package:stash/stash_api.dart';
+import 'package:stash_memory/stash_memory.dart';
+
 /// A [Store] orchestrates the fetching, observation, and
 /// persistence of data of type [T] keyed by keys of type [K].
 class Store<K, T> {
   final Fetch<K, T> _fetch;
   final SourceOfTruth<K, T>? _sourceOfTruth;
-  // TODO(brandon): Needs to be keyed by [K] and respect a memory policy
-  T? _memoryValue;
+
+  final Completer<void> _cacheInitialization = Completer();
+  late final Cache<T> _memoryCache;
 
   Store._({
     required Fetch<K, T> fetch,
@@ -40,13 +44,20 @@ class Store<K, T> {
   Stream<T> stream({
     required StoreRequest<K> request,
   }) async* {
-    final cachedValue = _memoryValue;
-    if (!request.skipCache && cachedValue != null) {
-      yield cachedValue;
+    final stringifiedKey = request.key.toString();
+    if (!_cacheInitialization.isCompleted) {
+      final store = await newMemoryCacheStore();
+      _memoryCache = await store.cache<T>();
+      _cacheInitialization.complete();
+    }
+    final memoryEntry = await _memoryCache.get(stringifiedKey);
+    if (!request.skipCache && memoryEntry != null) {
+      yield memoryEntry;
     } else if (request.refresh) {
       late StreamSubscription<T> fetchSubscription;
       fetchSubscription = _fetch(request.key).listen(
-        (value) {
+        (value) async {
+          await _memoryCache.put(stringifiedKey, value);
           _sourceOfTruth?.write(request.key, value);
         },
         onDone: () => fetchSubscription.cancel(),
@@ -66,8 +77,9 @@ class Store<K, T> {
   /// If a value does not exist in either of those, null
   /// will be returned.
   Future<T?> cached(K key) async {
-    if (_memoryValue != null) {
-      return _memoryValue;
+    final value = await _memoryCache.get(key.toString());
+    if (value != null) {
+      return value;
     } else if (_sourceOfTruth != null) {
       return _sourceOfTruth!.read(key).first;
     }
@@ -95,12 +107,18 @@ typedef Fetch<K, T> = Stream<T> Function(K key);
 class SourceOfTruth<K, T> {
   final Read<K, T> _read;
   final Write<K, T> _write;
+  final Delete<K> _delete;
+  final DeleteAll _deleteAll;
 
   SourceOfTruth._({
     required Read<K, T> read,
     required Write<K, T> write,
+    required Delete<K> delete,
+    required DeleteAll deleteAll,
   })  : _read = read,
-        _write = write;
+        _write = write,
+        _delete = delete,
+        _deleteAll = deleteAll;
 
   /// Creates a [SourceOfTruth] that handles CRUD
   /// operations via the provided [Read], [Write],
@@ -108,10 +126,14 @@ class SourceOfTruth<K, T> {
   factory SourceOfTruth.of({
     required Read<K, T> read,
     required Write<K, T> write,
+    required Delete<K> delete,
+    required DeleteAll deleteAll,
   }) {
     return SourceOfTruth._(
       read: read,
       write: write,
+      delete: delete,
+      deleteAll: deleteAll,
     );
   }
 
@@ -122,10 +144,21 @@ class SourceOfTruth<K, T> {
     return _read(key);
   }
 
-  /// Persists [T] at key [K] via the [Write] function
+  /// Persists [value] at key [K] via the [Write] function
   /// provided during [SourceOfTruth] creation.
   Future<void> write(K key, T value) {
     return _write(key, value);
+  }
+
+  /// Deletes the value at key [K] via the [Delete] function
+  /// provided during [SourceOfTruth] creation.
+  Future<void> delete(K key) {
+    return _delete(key);
+  }
+
+  /// Deletes all data associated with this [SourceOfTruth]
+  Future<void> deleteAll() {
+    return _deleteAll();
   }
 }
 

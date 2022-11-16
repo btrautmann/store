@@ -33,6 +33,8 @@ Store<String, String?> stringStore(RxSharedPreferences prefs) {
     sourceOfTruth: SourceOfTruth.of(
       read: (key) => prefs.getStringStream(key),
       write: (key, value) async => prefs.setString(key, value),
+      delete: (key) async => prefs.remove(key),
+      deleteAll: () async => prefs.clear(),
     ),
   );
 }
