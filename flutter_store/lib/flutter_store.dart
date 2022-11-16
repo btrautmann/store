@@ -11,9 +11,8 @@ typedef OnLoading = Widget Function();
 
 class StoreBuilder<K, T> extends StatelessWidget {
   final Store<K, T> store;
-  final K storeKey;
+  final StoreRequest<K> storeRequest;
   final T? initialValue;
-  final bool? refresh;
   final OnData<T> onData;
   final OnError onError;
   final OnLoading onLoading;
@@ -21,24 +20,18 @@ class StoreBuilder<K, T> extends StatelessWidget {
   const StoreBuilder({
     super.key,
     required this.store,
-    required this.storeKey,
+    required this.storeRequest,
     required this.onData,
     required this.onError,
     required this.onLoading,
     this.initialValue,
-    this.refresh,
   });
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
       initialData: initialValue,
-      stream: store.stream(
-        request: StoreRequest.cached(
-          key: storeKey,
-          refresh: refresh,
-        ),
-      ),
+      stream: store.stream(request: storeRequest),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           return onData(snapshot.data as T);

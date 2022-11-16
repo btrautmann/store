@@ -20,84 +20,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomeScreen(title: 'Flutter Demo Home Page'),
+      home: FreshScreen(),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  late Store<String, String> _store;
-
-  Stream<String> emitDigits() async* {
-    for (int x = 0; x < 10; x++) {
-      await Future.delayed(const Duration(seconds: 1));
-      yield x.toString();
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _store = stringStore(_preferences);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            StringStoreBuilder(
-              store: _store,
-              storeKey: 'ok',
-              onData: (value) {
-                return Text(value);
-              },
-              onError: () => const Text('Error!'),
-              onLoading: () => const CircularProgressIndicator(),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (context) => RefreshScreen(),
-                  ));
-                },
-                child: const Text('Next'),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  _preferences.clear();
-                },
-                child: const Text('Clear RxPreferences'),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class RefreshScreen extends StatelessWidget {
-  RefreshScreen({Key? key}) : super(key: key);
+class FreshScreen extends StatelessWidget {
+  FreshScreen({Key? key}) : super(key: key);
 
   final _store = stringStore(_preferences);
 
@@ -105,7 +34,7 @@ class RefreshScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Screen Two'),
+        title: const Text('Fresh Screen'),
       ),
       body: Center(
         child: Column(
@@ -113,25 +42,43 @@ class RefreshScreen extends StatelessWidget {
           children: <Widget>[
             StringStoreBuilder(
               store: _store,
-              storeKey: 'ok',
+              storeRequest: StoreRequest.fresh('whatever'),
               onData: (value) {
-                return Text(value);
+                return Text(value ?? 'null');
               },
               onError: () => const Text('Error!'),
               onLoading: () => const CircularProgressIndicator(),
-              refresh: true,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  _store.refresh('whatever');
+                },
+                child: const Text('Refresh'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  _preferences.clear();
+                  _store.refresh('whatever');
+                },
+                child: const Text('Clear RxPreferences'),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (context) => RefreshScreen(),
+                    builder: (context) => CachedScreen(),
                   ));
                 },
-                child: const Text('Next'),
+                child: const Text('Go to Cached Screen'),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -139,4 +86,35 @@ class RefreshScreen extends StatelessWidget {
   }
 }
 
-typedef StringStoreBuilder = StoreBuilder<String, String>;
+class CachedScreen extends StatelessWidget {
+  CachedScreen({Key? key}) : super(key: key);
+
+  final _store = stringStore(_preferences);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Cached Screen'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            StringStoreBuilder(
+              store: _store,
+              storeRequest: StoreRequest.cached(key: 'whatever'),
+              onData: (value) {
+                return Text(value ?? 'null');
+              },
+              onError: () => const Text('Error!'),
+              onLoading: () => const CircularProgressIndicator(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+typedef StringStoreBuilder = StoreBuilder<String, String?>;

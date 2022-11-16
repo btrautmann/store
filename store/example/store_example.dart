@@ -6,9 +6,9 @@ void main() async {
   final inMemoryStorage = InMemoryStorage();
   final store = Store<String, String>.from(
     fetch: (key) => (StreamController<String>()..add('dummy')).stream,
-    sourceOfTruth: SourceOfTruth<String>.of(
-      read: () => (StreamController<String>()..add(inMemoryStorage.value)).stream,
-      write: (value) async => inMemoryStorage.value = value,
+    sourceOfTruth: SourceOfTruth<String, String>.of(
+      read: (key) => (StreamController<String>()..add(inMemoryStorage.value)).stream,
+      write: (key, value) async => inMemoryStorage.value = value,
     ),
   );
   store.stream(request: StoreRequest.cached(key: 'Brandon')).listen((value) {
