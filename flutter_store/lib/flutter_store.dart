@@ -5,11 +5,11 @@ import 'package:store/store.dart';
 
 export 'package:store/store.dart';
 
-typedef OnData<T> = Widget Function(T data);
-typedef OnError = Widget Function();
-typedef OnLoading = Widget Function();
+typedef OnData<T> = Widget Function(T value, Source source);
+typedef OnError = Widget Function(Exception error);
+typedef OnLoading = Widget Function(Source source);
 
-class StoreBuilder<K, T> extends StatelessWidget {
+class StoreBuilder<K extends Object, T extends Object?> extends StatelessWidget {
   final Store<K, T> store;
   final StoreRequest<K> storeRequest;
   final T? initialValue;
@@ -34,12 +34,21 @@ class StoreBuilder<K, T> extends StatelessWidget {
       stream: store.stream(request: storeRequest),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return onData(snapshot.data as T);
+          final response = snapshot.data as StoreResponse<T>;
+          if (response is Data<T>) {
+            return onData(response.value, response.source);
+          } else if (response is Error) {
+            return onError((response as Error).error);
+          } else if (response is Loading) {
+            return onLoading(response.source);
+          }
         } else if (snapshot.hasError) {
-          return onError();
-        } else {
-          return onLoading();
+          return onError(Exception(snapshot.error?.toString()));
         }
+        // There may exist a moment in which snapshot does not have
+        // data from the Store, but rather than clutter the public API,
+        // simply return a shrink for now.
+        return const SizedBox.shrink();
       },
     );
   }

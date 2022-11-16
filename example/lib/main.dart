@@ -43,11 +43,31 @@ class FreshScreen extends StatelessWidget {
             StringStoreBuilder(
               store: _store,
               storeRequest: StoreRequest.fresh('whatever'),
-              onData: (value) {
-                return Text(value ?? 'null');
+              onData: (value, source) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(value ?? 'null'),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(source.toString()),
+                    ),
+                  ],
+                );
               },
-              onError: () => const Text('Error!'),
-              onLoading: () => const CircularProgressIndicator(),
+              onError: (error) => Text(error.toString()),
+              onLoading: (source) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(source.toString()),
+                    ),
+                  ],
+                );
+              },
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -55,17 +75,17 @@ class FreshScreen extends StatelessWidget {
                 onPressed: () {
                   _store.refresh('whatever');
                 },
-                child: const Text('Refresh'),
+                child: const Text('Refresh Store'),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
                 onPressed: () {
-                  _preferences.clear();
+                  _store.clearAll();
                   _store.refresh('whatever');
                 },
-                child: const Text('Clear RxPreferences'),
+                child: const Text('Clear Store'),
               ),
             ),
             Padding(
@@ -104,11 +124,31 @@ class CachedScreen extends StatelessWidget {
             StringStoreBuilder(
               store: _store,
               storeRequest: StoreRequest.cached(key: 'whatever'),
-              onData: (value) {
-                return Text(value ?? 'null');
+              onData: (value, source) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(value ?? 'null'),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(source.toString()),
+                    ),
+                  ],
+                );
               },
-              onError: () => const Text('Error!'),
-              onLoading: () => const CircularProgressIndicator(),
+              onError: (error) => Text(error.toString()),
+              onLoading: (source) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(source.toString()),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),

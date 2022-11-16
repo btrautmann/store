@@ -5,7 +5,7 @@ import 'package:stash_memory/stash_memory.dart';
 
 /// A [Store] orchestrates the fetching, observation, and
 /// persistence of data of type [T] keyed by keys of type [K].
-class Store<K, T> {
+class Store<K extends Object, T extends Object?> {
   final Fetch<K, T> _fetch;
   final SourceOfTruth<K, T>? _sourceOfTruth;
 
@@ -41,7 +41,7 @@ class Store<K, T> {
   ///
   /// Emissions following any cached value (based on the above
   /// logic) will always be from the provided [SourceOfTruth].
-  Stream<T> stream({
+  Stream<StoreResponse<T>> stream({
     required StoreRequest<K> request,
   }) async* {
     final stringifiedKey = request.key.toString();
@@ -52,20 +52,26 @@ class Store<K, T> {
     }
     final memoryEntry = await _memoryCache.get(stringifiedKey);
     if (!request.skipCache && memoryEntry != null) {
-      yield memoryEntry;
+      yield Data(value: memoryEntry, source: Source.cache);
     } else if (request.refresh) {
-      late StreamSubscription<T> fetchSubscription;
-      fetchSubscription = _fetch(request.key).listen(
-        (value) async {
-          await _memoryCache.put(stringifiedKey, value);
-          _sourceOfTruth?.write(request.key, value);
-        },
-        onDone: () => fetchSubscription.cancel(),
-      );
+      yield Loading(source: Source.fetch);
+      await for (final value in _fetch(request.key)) {
+        await _memoryCache.put(stringifiedKey, value);
+        if (_sourceOfTruth != null) {
+          _sourceOfTruth!.write(request.key, value);
+        } else {
+          yield Data(value: value, source: Source.sourceOfTruth);
+        }
+      }
     }
     final read = _sourceOfTruth?.read(request.key);
     if (read != null) {
-      yield* read;
+      yield* read.map(
+        (value) => Data<T>(
+          value: value,
+          source: Source.sourceOfTruth,
+        ),
+      );
     }
   }
 
@@ -76,23 +82,42 @@ class Store<K, T> {
   ///
   /// If a value does not exist in either of those, null
   /// will be returned.
-  Future<T?> cached(K key) async {
+  Future<StoreResponse<T?>> cached(K key) async {
     final value = await _memoryCache.get(key.toString());
     if (value != null) {
-      return value;
+      return Data(value: value, source: Source.cache);
     } else if (_sourceOfTruth != null) {
-      return _sourceOfTruth!.read(key).first;
+      return Data(
+        value: (await _sourceOfTruth!.read(key).first),
+        source: Source.sourceOfTruth,
+      );
     }
-    return null;
+    return Data(value: value, source: Source.cache);
   }
 
   /// Invokes the [Fetch] provided during [Store] creation
   /// and writes the returned value to the [SourceOfTruth]
   /// if available. Lastly, it returns the fetched value.
-  Future<T> refresh(K key) async {
+  Future<StoreResponse<T>> refresh(K key) async {
     final value = await _fetch(key).first;
     _sourceOfTruth?.write(key, value);
-    return value;
+    _memoryCache.put(key.toString(), value);
+    return Data(value: value, source: Source.fetch);
+  }
+
+  /// Invalidates the in-memory cache at [K] and
+  /// deletes data at [K] from the [SourceOfTruth]
+  Future<void> clear(K key) async {
+    await _memoryCache.remove(key.toString());
+    await _sourceOfTruth?._delete(key);
+  }
+
+  /// Invalidates the entire in-memorty cache associated
+  /// with this [Store] and deletes all data from the
+  /// [SourceOfTruth]
+  Future<void> clearAll() async {
+    await _memoryCache.clear();
+    await _sourceOfTruth?.deleteAll();
   }
 }
 
@@ -219,4 +244,68 @@ class StoreRequest<K> {
       refresh: refresh ?? false,
     );
   }
+}
+
+/// {@template store_response}
+/// Represents the result of attempting to read data
+/// from a [Store]
+/// {@endtemplate}
+abstract class StoreResponse<T> {
+  /// The [Source] that produced the [StoreResponse].
+  final Source source;
+
+  /// {@macro store_response}
+  const StoreResponse({required this.source});
+}
+
+/// {@template data_response}
+/// Represents a successful read of data of type [T]
+/// {@endtemplate}
+class Data<T> extends StoreResponse<T> {
+  /// The value of type [T] that was successfully
+  /// read from storage
+  final T value;
+
+  /// {@macro data_response}
+  Data({
+    required this.value,
+    required super.source,
+  });
+}
+
+/// {@template loading_response}
+/// Represents an in-flight request for data of type [T]
+/// {@endtemplate}
+class Loading<T> extends StoreResponse<T> {
+  /// {@macro loading_response}
+  Loading({required super.source});
+}
+
+/// {@template error_response}
+/// Represents an error that occurred while reading
+/// data
+/// {@endtemplate}
+class Error<T> extends StoreResponse<T> {
+  /// The [Exception] that was raised when attempting
+  /// to read from storage
+  final Exception error;
+
+  /// {@macro error_response}
+  Error({
+    required this.error,
+    required super.source,
+  });
+}
+
+/// The storage location from which a [StoreResponse]
+/// was produced
+enum Source {
+  /// In-memory cache of the [Store]
+  cache,
+
+  /// The [SourceOfTruth] provided to a [Store]
+  sourceOfTruth,
+
+  /// The [Fetch] provided to a [Store]
+  fetch,
 }
