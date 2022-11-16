@@ -7,7 +7,8 @@ void main() async {
   final store = Store<String, String>.from(
     fetch: (key) => (StreamController<String>()..add('dummy')).stream,
     sourceOfTruth: SourceOfTruth<String, String>.of(
-      read: (key) => (StreamController<String>()..add(inMemoryStorage.value)).stream,
+      read: (key) =>
+          (StreamController<String>()..add(inMemoryStorage.value)).stream,
       write: (key, value) async => inMemoryStorage.value = value,
       delete: (key) async => inMemoryStorage.value = '',
       deleteAll: () async => inMemoryStorage.value = '',

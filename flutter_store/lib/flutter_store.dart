@@ -9,7 +9,8 @@ typedef OnData<T> = Widget Function(T value, Source source);
 typedef OnError = Widget Function(Exception error);
 typedef OnLoading = Widget Function(Source source);
 
-class StoreBuilder<K extends Object, T extends Object?> extends StatelessWidget {
+class StoreBuilder<K extends Object, T extends Object?>
+    extends StatelessWidget {
   final Store<K, T> store;
   final StoreRequest<K> storeRequest;
   final T? initialValue;

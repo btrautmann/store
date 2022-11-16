@@ -73,9 +73,60 @@ class FreshScreen extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
                 onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (_) {
+                        return Dialog(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: FutureBuilder(
+                              future: _store.cached('whatever'),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  final response = snapshot.data as StoreResponse<String?>;
+                                  if (response is Data<String?>) {
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(response.value ?? 'no cached value'),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(response.source.toString()),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: const Text('Done'),
+                                        ),
+                                      ],
+                                    );
+                                  } else if (response is Error) {
+                                    return Text((response as Error).error.toString());
+                                  } else if (response is Loading) {
+                                    return const CircularProgressIndicator();
+                                  }
+                                } else if (snapshot.hasError) {
+                                  return Text(Exception(snapshot.error?.toString()).toString());
+                                }
+                                // There may exist a moment in which snapshot does not have
+                                // data from the Store, but rather than clutter the public API,
+                                // simply return a shrink for now.
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                          ),
+                        );
+                      });
+                },
+                child: const Text('Check cache'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
                   _store.refresh('whatever');
                 },
-                child: const Text('Refresh Store'),
+                child: const Text('Background refresh'),
               ),
             ),
             Padding(
@@ -85,7 +136,7 @@ class FreshScreen extends StatelessWidget {
                   _store.clearAll();
                   _store.refresh('whatever');
                 },
-                child: const Text('Clear Store'),
+                child: const Text('Clear store'),
               ),
             ),
             Padding(
@@ -96,7 +147,7 @@ class FreshScreen extends StatelessWidget {
                     builder: (context) => CachedScreen(),
                   ));
                 },
-                child: const Text('Go to Cached Screen'),
+                child: const Text('Next screen'),
               ),
             ),
           ],
