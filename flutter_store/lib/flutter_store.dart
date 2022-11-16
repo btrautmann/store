@@ -13,6 +13,7 @@ class StoreBuilder<K, T> extends StatelessWidget {
   final Store<K, T> store;
   final K storeKey;
   final T? initialValue;
+  final bool? refresh;
   final OnData<T> onData;
   final OnError onError;
   final OnLoading onLoading;
@@ -25,6 +26,7 @@ class StoreBuilder<K, T> extends StatelessWidget {
     required this.onError,
     required this.onLoading,
     this.initialValue,
+    this.refresh,
   });
 
   @override
@@ -32,7 +34,10 @@ class StoreBuilder<K, T> extends StatelessWidget {
     return StreamBuilder(
       initialData: initialValue,
       stream: store.stream(
-        request: StoreRequest.cached(key: storeKey),
+        request: StoreRequest.cached(
+          key: storeKey,
+          refresh: refresh,
+        ),
       ),
       builder: (context, snapshot) {
         if (snapshot.hasData) {

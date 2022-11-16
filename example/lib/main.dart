@@ -1,11 +1,12 @@
+import 'package:example/stores.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_store/flutter_store.dart';
 import 'package:rx_shared_preferences/rx_shared_preferences.dart';
 
-late SharedPreferences _preferences;
+late RxSharedPreferences _preferences;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  _preferences = await SharedPreferences.getInstance();
+  _preferences = (await SharedPreferences.getInstance()).rx;
   runApp(const MyApp());
 }
 
@@ -19,21 +20,21 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const HomeScreen(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomeScreenState extends State<HomeScreen> {
   late Store<String, String> _store;
 
   Stream<String> emitDigits() async* {
@@ -46,13 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _store = Store.from(
-      fetch: (key) => emitDigits(),
-      sourceOfTruth: SourceOfTruth.of(
-        read: () => _preferences.rx.getStringStream('value').map((event) => event ?? ''),
-        write: (value) async => _preferences.rx.setString('value', value),
-      ),
-    );
+    _store = stringStore(_preferences);
   }
 
   @override
@@ -78,9 +73,63 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
                 onPressed: () {
-                  _preferences.rx.setString('value', '-x-');  
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (context) => RefreshScreen(),
+                  ));
                 },
-                child: const Text('Clear'),
+                child: const Text('Next'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  _preferences.clear();
+                },
+                child: const Text('Clear RxPreferences'),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class RefreshScreen extends StatelessWidget {
+  RefreshScreen({Key? key}) : super(key: key);
+
+  final _store = stringStore(_preferences);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Screen Two'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            StringStoreBuilder(
+              store: _store,
+              storeKey: 'ok',
+              onData: (value) {
+                return Text(value);
+              },
+              onError: () => const Text('Error!'),
+              onLoading: () => const CircularProgressIndicator(),
+              refresh: true,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (context) => RefreshScreen(),
+                  ));
+                },
+                child: const Text('Next'),
               ),
             )
           ],

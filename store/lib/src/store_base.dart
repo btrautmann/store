@@ -23,25 +23,38 @@ class Store<K, T> {
 
   Stream<T> stream({
     required StoreRequest request,
-  }) {
-    final controller = StreamController<T>();
-    return _updateStream(controller, request);
-  }
-
-  Stream<T> _updateStream(StreamController controller, StoreRequest request) async* {
+  }) async* {
     final cachedValue = _memoryValue;
     if (!request.skipCache && cachedValue != null) {
       yield cachedValue;
-    } else {
-      late StreamSubscription<T> sub;
-      sub = _fetch(request.key).listen((value) {
-        _sourceOfTruth?.write(value);
-      }, onDone: () => sub.cancel());
+    } else if (request.refresh) {
+      late StreamSubscription<T> fetchSubscription;
+      fetchSubscription = _fetch(request.key).listen(
+        (value) {
+          _sourceOfTruth?.write(value);
+        },
+        onDone: () => fetchSubscription.cancel(),
+      );
     }
     final read = _sourceOfTruth?.read();
     if (read != null) {
       yield* read;
     }
+  }
+
+  Future<T?> cached(K key) async {
+    if (_memoryValue != null) {
+      return _memoryValue;
+    } else if (_sourceOfTruth != null) {
+      return _sourceOfTruth!.read().first;
+    }
+    return null;
+  }
+
+  Future<T> refresh(K key) async {
+    final value = await _fetch(key).first;
+    _sourceOfTruth?.write(value);
+    return value;
   }
 }
 
