@@ -174,7 +174,7 @@ typedef Delete<K> = Future<void> Function(K key);
 /// Function describing the deletion of all data of type [T]
 typedef DeleteAll = Future<void> Function();
 
-/// A request for data at key [K] that can be issues to a [Store]
+/// A request for data at key [K] that can be issued to a [Store]
 /// via the `stream` function.
 class StoreRequest<K> {
   /// The key at which the data being requested resides
