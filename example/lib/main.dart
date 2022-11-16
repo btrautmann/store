@@ -47,7 +47,7 @@ class FreshScreen extends StatelessWidget {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(value ?? 'null'),
+                    Text(value),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(source.toString()),
@@ -128,7 +128,7 @@ class CachedScreen extends StatelessWidget {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(value ?? 'null'),
+                    Text(value),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(source.toString()),
@@ -157,4 +157,4 @@ class CachedScreen extends StatelessWidget {
   }
 }
 
-typedef StringStoreBuilder = StoreBuilder<String, String?>;
+typedef StringStoreBuilder = StoreBuilder<String, String>;

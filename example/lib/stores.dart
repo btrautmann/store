@@ -22,7 +22,7 @@ String getRandomString(int length) {
 /// An example [Store] that uses a [String] as a key and stores nullable
 /// [String] values. The `fetchString` method simulates a network call
 /// and returns a random 10 character [String].
-Store<String, String?> stringStore(RxSharedPreferences prefs) {
+Store<String, String> stringStore(RxSharedPreferences prefs) {
   Stream<String> fetchString() async* {
     await Future.delayed(const Duration(seconds: 2));
     yield getRandomString(10);
@@ -31,7 +31,7 @@ Store<String, String?> stringStore(RxSharedPreferences prefs) {
   return Store.from(
     fetch: (_) => fetchString(),
     sourceOfTruth: SourceOfTruth.of(
-      read: (key) => prefs.getStringStream(key),
+      read: (key) => prefs.getStringStream(key).map((v) => v ?? '---'),
       write: (key, value) async => prefs.setString(key, value),
       delete: (key) async => prefs.remove(key),
       deleteAll: () async => prefs.clear(),
