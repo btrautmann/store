@@ -1,4 +1,4 @@
-name: dart_store
+name: reactive_store
 description: A port of MobileNativeFoundation Store, a library for loading data from remote and local sources.
 version: 0.0.1-dev.1
 homepage: https://github.com/btrautmann/store
