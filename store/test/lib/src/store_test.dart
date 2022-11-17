@@ -7,7 +7,8 @@ void main() {
       return Stream.value('test');
     }
 
-    SourceOfTruth<String, String?> produceSourceOfTruth({Map<String, String?>? storage}) {
+    SourceOfTruth<String, String?> produceSourceOfTruth(
+        {Map<String, String?>? storage}) {
       final s = storage ?? {};
       return SourceOfTruth.of(
         read: (key) => Stream.value(s[key]),
@@ -28,7 +29,8 @@ void main() {
                 );
 
                 final responses = <StoreResponse<String>>[];
-                await for (final response in subject.stream(request: StoreRequest.cached(key: 'dummy'))) {
+                await for (final response in subject.stream(
+                    request: StoreRequest.cached(key: 'dummy'))) {
                   responses.add(response);
                 }
 
@@ -43,13 +45,15 @@ void main() {
                 );
 
                 // ignore: unused_local_variable
-                await for (final response in subject.stream(request: StoreRequest.fresh('dummy'))) {
+                await for (final response
+                    in subject.stream(request: StoreRequest.fresh('dummy'))) {
                   // Do nothing
                 }
 
                 // Memory cache is populated now
                 final responses = <StoreResponse<String>>[];
-                await for (final response in subject.stream(request: StoreRequest.cached(key: 'dummy'))) {
+                await for (final response in subject.stream(
+                    request: StoreRequest.cached(key: 'dummy'))) {
                   responses.add(response);
                 }
 
@@ -73,38 +77,51 @@ void main() {
                   );
 
                   final responses = <StoreResponse<String?>>[];
-                  await for (final response in subject.stream(request: StoreRequest.cached(key: 'dummy'))) {
+                  await for (final response in subject.stream(
+                      request: StoreRequest.cached(key: 'dummy'))) {
                     responses.add(response);
                   }
 
-                  expect(responses, [Data<String?>(value: null, source: Source.sourceOfTruth)]);
+                  expect(responses, [
+                    Data<String?>(value: null, source: Source.sourceOfTruth)
+                  ]);
                 });
               });
 
               group('and a value exists in source of truth', () {
-                test('it emits the result of source of truth and persists the value in memory', () async {
+                test(
+                    'it emits the result of source of truth and persists the value in memory',
+                    () async {
                   final subject = Store<String, String?>.from(
                     fetch: (_) => fetchString(),
-                    sourceOfTruth: produceSourceOfTruth(storage: {'dummy': 'existingValue'}),
+                    sourceOfTruth: produceSourceOfTruth(
+                        storage: {'dummy': 'existingValue'}),
                   );
 
                   final firstResponses = <StoreResponse<String?>>[];
-                  await for (final response in subject.stream(request: StoreRequest.cached(key: 'dummy'))) {
+                  await for (final response in subject.stream(
+                      request: StoreRequest.cached(key: 'dummy'))) {
                     firstResponses.add(response);
                   }
 
-                  expect(firstResponses, [Data<String?>(value: 'existingValue', source: Source.sourceOfTruth)]);
+                  expect(firstResponses, [
+                    Data<String?>(
+                        value: 'existingValue', source: Source.sourceOfTruth)
+                  ]);
 
                   final secondResponses = <StoreResponse<String?>>[];
-                  await for (final response in subject.stream(request: StoreRequest.cached(key: 'dummy'))) {
+                  await for (final response in subject.stream(
+                      request: StoreRequest.cached(key: 'dummy'))) {
                     secondResponses.add(response);
                   }
 
                   expect(
                     secondResponses,
                     [
-                      Data<String?>(value: 'existingValue', source: Source.cache),
-                      Data<String?>(value: 'existingValue', source: Source.sourceOfTruth),
+                      Data<String?>(
+                          value: 'existingValue', source: Source.cache),
+                      Data<String?>(
+                          value: 'existingValue', source: Source.sourceOfTruth),
                     ],
                   );
                 });
@@ -112,18 +129,23 @@ void main() {
             });
 
             group('and a value exists in memory cache', () {
-              test('it emits the result of memory cache followed by source of truth', () async {
-                final subject =
-                    Store<String, String?>.from(fetch: (_) => fetchString(), sourceOfTruth: produceSourceOfTruth());
+              test(
+                  'it emits the result of memory cache followed by source of truth',
+                  () async {
+                final subject = Store<String, String?>.from(
+                    fetch: (_) => fetchString(),
+                    sourceOfTruth: produceSourceOfTruth());
 
                 // ignore: unused_local_variable
-                await for (final response in subject.stream(request: StoreRequest.fresh('dummy'))) {
+                await for (final response
+                    in subject.stream(request: StoreRequest.fresh('dummy'))) {
                   // Do nothing
                 }
 
                 // Memory cache is populated now
                 final responses = <StoreResponse<String?>>[];
-                await for (final response in subject.stream(request: StoreRequest.cached(key: 'dummy'))) {
+                await for (final response in subject.stream(
+                    request: StoreRequest.cached(key: 'dummy'))) {
                   responses.add(response);
                 }
 
@@ -165,13 +187,16 @@ void main() {
             });
 
             group('and a value exists in memory cache', () {
-              test('it emits the result of memory cache followed by the result of fetch', () async {
+              test(
+                  'it emits the result of memory cache followed by the result of fetch',
+                  () async {
                 final subject = Store<String, String>.from(
                   fetch: (_) => fetchString(),
                 );
 
                 // ignore: unused_local_variable
-                await for (final response in subject.stream(request: StoreRequest.fresh('dummy'))) {
+                await for (final response
+                    in subject.stream(request: StoreRequest.fresh('dummy'))) {
                   // Do nothing
                 }
 
@@ -201,7 +226,9 @@ void main() {
           group('and a source of truth is provided', () {
             group('and no value exists in memory cache', () {
               group('and no value exists in source of truth', () {
-                test('it emits data with null value followed by the result of fetch ', () async {
+                test(
+                    'it emits data with null value followed by the result of fetch ',
+                    () async {
                   final subject = Store<String, String?>.from(
                     fetch: (_) => fetchString(),
                     sourceOfTruth: produceSourceOfTruth(),
@@ -225,10 +252,13 @@ void main() {
                 });
               });
               group('and a value exists in source of truth', () {
-                test('it emits the result of source of truth followed by the result of fetch ', () async {
+                test(
+                    'it emits the result of source of truth followed by the result of fetch ',
+                    () async {
                   final subject = Store<String, String?>.from(
                     fetch: (_) => fetchString(),
-                    sourceOfTruth: produceSourceOfTruth(storage: {'dummy': 'existingValue'}),
+                    sourceOfTruth: produceSourceOfTruth(
+                        storage: {'dummy': 'existingValue'}),
                   );
 
                   final responses = <StoreResponse<String?>>[];
@@ -242,7 +272,8 @@ void main() {
                   }
 
                   expect(responses, [
-                    Data<String?>(value: 'existingValue', source: Source.sourceOfTruth),
+                    Data<String?>(
+                        value: 'existingValue', source: Source.sourceOfTruth),
                     Loading<String?>(source: Source.fetch),
                     Data<String?>(value: 'test', source: Source.fetch),
                   ]);
@@ -261,7 +292,8 @@ void main() {
                 );
 
                 // ignore: unused_local_variable
-                await for (final response in subject.stream(request: StoreRequest.fresh('dummy'))) {
+                await for (final response
+                    in subject.stream(request: StoreRequest.fresh('dummy'))) {
                   // Do nothing
                 }
 
@@ -312,7 +344,9 @@ void main() {
           });
         });
         group('when source of truth is provided', () {
-          test('it emits the result of source of truth followed by the result of fetch', () async {
+          test(
+              'it emits the result of source of truth followed by the result of fetch',
+              () async {
             final subject = Store<String, String?>.from(
               fetch: (_) => fetchString(),
               sourceOfTruth: produceSourceOfTruth(),
@@ -350,7 +384,8 @@ void main() {
 
             final value = await subject.cached('dummy');
 
-            expect(value, Data<String?>(value: null, source: Source.sourceOfTruth));
+            expect(value,
+                Data<String?>(value: null, source: Source.sourceOfTruth));
           });
         });
 
@@ -358,12 +393,16 @@ void main() {
           test('it returns the result of source of truth', () async {
             final subject = Store.from(
               fetch: (key) => fetchString(),
-              sourceOfTruth: produceSourceOfTruth(storage: {'dummy': 'existingValue'}),
+              sourceOfTruth:
+                  produceSourceOfTruth(storage: {'dummy': 'existingValue'}),
             );
 
             final value = await subject.cached('dummy');
 
-            expect(value, Data<String?>(value: 'existingValue', source: Source.sourceOfTruth));
+            expect(
+                value,
+                Data<String?>(
+                    value: 'existingValue', source: Source.sourceOfTruth));
           });
         });
       });
@@ -375,7 +414,8 @@ void main() {
           );
 
           // ignore: unused_local_variable
-          await for (final response in subject.stream(request: StoreRequest.fresh('dummy'))) {
+          await for (final response
+              in subject.stream(request: StoreRequest.fresh('dummy'))) {
             // Do nothing
           }
 
@@ -399,14 +439,16 @@ void main() {
 
     group('clear', () {
       test('it clear memory cache and source of truth for key', () async {
-        final sourceOfTruth = produceSourceOfTruth(storage: {'dummy': 'existingValue'});
+        final sourceOfTruth =
+            produceSourceOfTruth(storage: {'dummy': 'existingValue'});
         final subject = Store.from(
           fetch: (key) => fetchString(),
           sourceOfTruth: sourceOfTruth,
         );
 
         // ignore: unused_local_variable
-        await for (final response in subject.stream(request: StoreRequest.cached(key: 'dummy'))) {
+        await for (final response
+            in subject.stream(request: StoreRequest.cached(key: 'dummy'))) {
           // Do nothing
         }
 
@@ -460,7 +502,8 @@ void main() {
 
         for (final key in ['dummy', 'rummy']) {
           // ignore: unused_local_variable
-          await for (final response in subject.stream(request: StoreRequest.cached(key: key))) {
+          await for (final response
+              in subject.stream(request: StoreRequest.cached(key: key))) {
             // Do nothing
           }
         }
@@ -494,7 +537,8 @@ void main() {
           rummyResponses,
           [
             Data<String?>(value: 'existingValue2', source: Source.cache),
-            Data<String?>(value: 'existingValue2', source: Source.sourceOfTruth),
+            Data<String?>(
+                value: 'existingValue2', source: Source.sourceOfTruth),
           ],
         );
 

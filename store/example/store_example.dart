@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:gooder_store/gooder_store.dart';
 
-
 void main() async {
   final inMemoryStorage = InMemoryStorage();
   final store = Store<String, String>.from(
