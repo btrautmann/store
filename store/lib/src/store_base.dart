@@ -68,7 +68,6 @@ class Store<K extends Object, T extends Object?> {
         (data) async {
           if (data is Data) {
             final value = (data as Data<T>).value;
-            print('Value returned from network: $value');
             await _memoryCache.put(stringifiedKey, value);
             if (_sourceOfTruth != null) {
               _sourceOfTruth!.write(request.key, value);
@@ -106,7 +105,6 @@ class Store<K extends Object, T extends Object?> {
     final value = await stream(request: StoreRequest.fresh(key)).firstWhere(
       (element) => element is Data<T> && element.source == Source.fetch,
     );
-    print('first value returned in refresh is: $value');
     return value;
   }
 
@@ -162,11 +160,9 @@ class FetchManager<K, T> {
       ..onDone(() {
         // The Stream associated with _fetch has completed. Remove the BehaviorSubject
         // and StreamSubscription associated with the key.
-        print('Fetch complete for $key, removing subject & subscription');
         _subjects[key] = null;
         _subscriptions[key] = null;
       });
-    print('yielding stream of ${subject.hashCode} for key $key');
     yield* subject.stream;
   }
 }
