@@ -71,6 +71,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+  dart_store:
+    dependency: transitive
+    description:
+      path: "../store"
+      relative: true
+    source: path
+    version: "0.0.1-dev.1"
   disposebag:
     dependency: transitive
     description:
@@ -239,7 +246,7 @@ packages:
       name: rxdart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.27.6"
+    version: "0.27.7"
   rxdart_ext:
     dependency: transitive
     description:
@@ -336,13 +343,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.3.4"
-  store:
-    dependency: transitive
-    description:
-      path: "../store"
-      relative: true
-    source: path
-    version: "1.0.0"
   stream_channel:
     dependency: transitive
     description:

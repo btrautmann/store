@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:store/store.dart';
+import 'package:dart_store/dart_store.dart';
+
 
 void main() async {
   final inMemoryStorage = InMemoryStorage();

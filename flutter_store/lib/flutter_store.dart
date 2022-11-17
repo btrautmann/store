@@ -1,9 +1,9 @@
 library flutter_store;
 
 import 'package:flutter/material.dart';
-import 'package:store/store.dart';
+import 'package:dart_store/dart_store.dart';
 
-export 'package:store/store.dart';
+export 'package:dart_store/dart_store.dart';
 
 typedef OnData<T> = Widget Function(T value, Source source);
 typedef OnError = Widget Function(Exception error);

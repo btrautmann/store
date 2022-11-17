@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  store:
+  dart_store:
     path: ../store
 
 dev_dependencies:

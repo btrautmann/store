@@ -1,8 +1,8 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library store;
+library dart_store;
 
-export 'src/store_base.dart';
+export 'src/store.dart';
 
 // TODO: Export any libraries intended for clients of this package.
