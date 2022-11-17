@@ -523,7 +523,9 @@ void main() {
           [
             Data<String?>(value: 'existingValue2', source: Source.cache),
             Data<String?>(
-                value: 'existingValue2', source: Source.sourceOfTruth),
+              value: 'existingValue2',
+              source: Source.sourceOfTruth,
+            ),
           ],
         );
 
