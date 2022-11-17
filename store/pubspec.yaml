@@ -9,6 +9,7 @@ environment:
   sdk: '>=2.17.6 <3.0.0'
 
 dependencies:
+  equatable: ^2.0.5
   rxdart: ^0.27.7
   stash: ^4.3.4
   stash_memory: ^4.3.4

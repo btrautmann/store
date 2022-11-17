@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:equatable/equatable.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stash/stash_api.dart';
 import 'package:stash_memory/stash_memory.dart';
@@ -56,14 +57,20 @@ class Store<K extends Object, T extends Object?> {
       yield Data(value: memoryEntry, source: Source.cache);
     }
 
-    Stream<StoreResponse<T>> mergeDiskAndFetch() {
-      final read = _sourceOfTruth?.read(request.key);
-      final diskStream = read?.map(
-        (v) => Data(
-          value: v,
-          source: Source.sourceOfTruth,
-        ),
-      );
+    Stream<StoreResponse<T>> mergeSourceOfTruthAndFetch() {
+      final sourceOfTruthStream = _sourceOfTruth
+          ?.read(request.key)
+          .map(
+            (v) => Data(
+              value: v,
+              source: Source.sourceOfTruth,
+            ),
+          )
+          .doOnData((data) async {
+        await _memoryCache.put(stringifiedKey, data.value);
+      }).doOnDone(() {
+        print('Store: sourceOfTruthStream finished.');
+      });
       final fetchStream = _fetchManager.fetch(request.key).doOnData(
         (data) async {
           if (data is Data) {
@@ -74,15 +81,18 @@ class Store<K extends Object, T extends Object?> {
             }
           }
         },
-      );
+      ).doOnDone(() {
+        print('Store: fetchStream finished.');
+      });
       return Rx.merge([
-        if (diskStream != null) diskStream,
+        if (sourceOfTruthStream != null) sourceOfTruthStream,
         if (request.refresh) fetchStream,
       ]);
     }
 
-    final mergedStream = mergeDiskAndFetch();
-    yield* mergedStream;
+    yield* mergeSourceOfTruthAndFetch().doOnDone(() {
+      print('Store: sourceOfTruthAndFetchStream finished.');
+    });
   }
 
   /// Attempts to return a cached value in the following
@@ -94,10 +104,7 @@ class Store<K extends Object, T extends Object?> {
   /// will be returned.
   Future<StoreResponse<T?>> cached(K key) async {
     return stream(request: StoreRequest.cached(key: key)).firstWhere(
-      (element) =>
-          element is Data<T> &&
-          (element.source == Source.cache ||
-              element.source == Source.sourceOfTruth),
+      (element) => element is Data<T> && (element.source == Source.cache || element.source == Source.sourceOfTruth),
     );
   }
 
@@ -115,7 +122,7 @@ class Store<K extends Object, T extends Object?> {
   /// deletes data at [K] from the [SourceOfTruth]
   Future<void> clear(K key) async {
     await _memoryCache.remove(key.toString());
-    await _sourceOfTruth?._delete(key);
+    await _sourceOfTruth?.delete(key);
   }
 
   /// Invalidates the entire in-memorty cache associated
@@ -157,18 +164,23 @@ class FetchManager<K, T> {
       yield* existingSubject.stream;
       return;
     }
-    final subject = BehaviorSubject<StoreResponse<T>>.seeded(
-        Loading<T>(source: Source.fetch));
-    _subjects[key] = subject;
-    _subscriptions[key] = _fetch(key)
-        .listen((data) => subject.add(Data(value: data, source: Source.fetch)))
-      ..onDone(() {
+    final subject = BehaviorSubject<StoreResponse<T>>.seeded(Loading<T>(source: Source.fetch));
+    late StreamSubscription subscription;
+    subscription = _fetch(key).listen((data) => subject.add(Data(value: data, source: Source.fetch)))
+      ..onDone(() async {
         // The Stream associated with _fetch has completed. Remove the BehaviorSubject
         // and StreamSubscription associated with the key.
+        print('Store: Cleaning up resources for Fetch associated with key: $key');
+        await subscription.cancel();
+        await subject.close();
         _subjects[key] = null;
         _subscriptions[key] = null;
       });
-    yield* subject.stream;
+    _subjects[key] = subject;
+    _subscriptions[key] = subscription;
+    yield* subject.stream.doOnDone(() {
+      print('Store: FetchManager#fetch stream complete for $key');
+    });
   }
 }
 
@@ -298,7 +310,7 @@ class StoreRequest<K> {
 /// Represents the result of attempting to read data
 /// from a [Store]
 /// {@endtemplate}
-abstract class StoreResponse<T> {
+abstract class StoreResponse<T> extends Equatable {
   /// The [Source] that produced the [StoreResponse].
   final Source source;
 
@@ -319,6 +331,9 @@ class Data<T> extends StoreResponse<T> {
     required this.value,
     required super.source,
   });
+
+  @override
+  List<Object?> get props => [value, source];
 }
 
 /// {@template loading_response}
@@ -327,6 +342,9 @@ class Data<T> extends StoreResponse<T> {
 class Loading<T> extends StoreResponse<T> {
   /// {@macro loading_response}
   Loading({required super.source});
+
+  @override
+  List<Object?> get props => [source];
 }
 
 /// {@template error_response}
@@ -343,6 +361,9 @@ class Error<T> extends StoreResponse<T> {
     required this.error,
     required super.source,
   });
+
+  @override
+  List<Object?> get props => [error, source];
 }
 
 /// The storage location from which a [StoreResponse]
