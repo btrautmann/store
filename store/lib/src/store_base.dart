@@ -94,7 +94,10 @@ class Store<K extends Object, T extends Object?> {
   /// will be returned.
   Future<StoreResponse<T?>> cached(K key) async {
     return stream(request: StoreRequest.cached(key: key)).firstWhere(
-      (element) => element is Data<T> && (element.source == Source.cache || element.source == Source.sourceOfTruth),
+      (element) =>
+          element is Data<T> &&
+          (element.source == Source.cache ||
+              element.source == Source.sourceOfTruth),
     );
   }
 
@@ -154,9 +157,11 @@ class FetchManager<K, T> {
       yield* existingSubject.stream;
       return;
     }
-    final subject = BehaviorSubject<StoreResponse<T>>.seeded(Loading<T>(source: Source.fetch));
+    final subject = BehaviorSubject<StoreResponse<T>>.seeded(
+        Loading<T>(source: Source.fetch));
     _subjects[key] = subject;
-    _subscriptions[key] = _fetch(key).listen((data) => subject.add(Data(value: data, source: Source.fetch)))
+    _subscriptions[key] = _fetch(key)
+        .listen((data) => subject.add(Data(value: data, source: Source.fetch)))
       ..onDone(() {
         // The Stream associated with _fetch has completed. Remove the BehaviorSubject
         // and StreamSubscription associated with the key.
