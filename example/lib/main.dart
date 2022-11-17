@@ -121,7 +121,7 @@ class FreshScreen extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
                 onPressed: () {
-                  _store.refresh('whatever');
+                  _store.fresh('whatever');
                 },
                 child: const Text('Background refresh'),
               ),
@@ -131,7 +131,7 @@ class FreshScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () async {
                   await _store.clearAll();
-                  await _store.refresh('whatever');
+                  await _store.fresh('whatever');
                 },
                 child: const Text('Clear store'),
               ),

@@ -42,7 +42,7 @@ class Store<K extends Object, T extends Object?> {
   ///
   /// If [request.skipCache] is false and an in-memory
   /// value exists, it will be the first value emitted.
-  /// If [request.refresh] is true, a fetch will be made
+  /// If [request.fresh] is true, a fetch will be made
   /// via the provided [Fetch] provided during [Store] creation.
   ///
   /// Emissions following any cached value (based on the above
@@ -118,7 +118,7 @@ class Store<K extends Object, T extends Object?> {
   /// Invokes the [Fetch] provided during [Store] creation
   /// and writes the returned value to the [SourceOfTruth]
   /// if available. Lastly, it returns the fetched value.
-  Future<StoreResponse<T>> refresh(K key) async {
+  Future<StoreResponse<T>> fresh(K key) async {
     final value = await stream(request: StoreRequest.fresh(key)).firstWhere(
       (element) => element is Data<T> && element.source == Source.fetch,
     );

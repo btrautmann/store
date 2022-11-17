@@ -423,7 +423,7 @@ void main() {
           fetch: (key) => fetchString(),
           sourceOfTruth: produceSourceOfTruth(),
         );
-        final response = await subject.refresh('dummy');
+        final response = await subject.fresh('dummy');
         expect(response, Data<String?>(value: 'test', source: Source.fetch));
       });
     });
