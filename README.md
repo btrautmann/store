@@ -1,5 +1,12 @@
-# Store (Flutter)
+# Store
 
-A dart & Flutter port of [Store](https://github.com/MobileNativeFoundation/Store).
+## Dart
 
-<img src="https://user-images.githubusercontent.com/8343465/202323250-1cf22eed-4410-46f5-9a1d-3aad9d641297.gif" width="704" height="880"/>
+For integration with a vanilla dart codebase, check out [store](store/)
+
+## Flutter
+
+For integration with a Flutter codebase, check out the unpublished [flutter_store](flutter_store/). For a basic Flutter example, check out the [example/](example/) directory.
+
+
+
