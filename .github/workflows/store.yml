@@ -19,6 +19,8 @@ jobs:
       - run: dart pub get
       - run: dart analyze
       - run: dart test --coverage=coverage/lcov.info --test-randomize-ordering-seed random
+      - run: ls 
+      - run: ls ../ 
       - uses: codecov/codecov-action@v2
         with:
           files: store/coverage/lcov.info
