@@ -1,6 +1,6 @@
 name: gooder_store
 description: A port of MobileNativeFoundation Store, a library for loading data from remote and local sources.
-version: 0.0.1-dev.1
+version: 0.0.1-dev.2
 homepage: https://github.com/btrautmann/store
 repository: https://github.com/btrautmann/store
 
