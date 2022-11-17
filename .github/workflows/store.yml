@@ -18,8 +18,8 @@ jobs:
       - run: dart format --set-exit-if-changed .
       - run: dart pub get
       - run: dart analyze
-      - run: dart test --coverage=coverage/lcov.info --test-randomize-ordering-seed random
-      - run: ls coverage/
+      - run: dart pub global activate coverage
+      - run: dart pub global run coverage:test_with_coverage
       - uses: codecov/codecov-action@v2
         with:
           files: store/coverage/lcov.info
