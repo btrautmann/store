@@ -7,8 +7,9 @@ void main() {
       return Stream.value('test');
     }
 
-    SourceOfTruth<String, String?> produceSourceOfTruth(
-        {Map<String, String?>? storage}) {
+    SourceOfTruth<String, String?> produceSourceOfTruth({
+      Map<String, String?>? storage,
+    }) {
       final s = storage ?? {};
       return SourceOfTruth.of(
         read: (key) => Stream.value(s[key]),
@@ -44,11 +45,9 @@ void main() {
                   fetch: (_) => fetchString(),
                 );
 
-                // ignore: unused_local_variable
-                await for (final response
-                    in subject.stream(request: StoreRequest.fresh('dummy'))) {
-                  // Do nothing
-                }
+                await subject
+                    .stream(request: StoreRequest.fresh('dummy'))
+                    .drain();
 
                 // Memory cache is populated now
                 final responses = <StoreResponse<String>>[];
@@ -95,7 +94,8 @@ void main() {
                   final subject = Store<String, String?>.from(
                     fetch: (_) => fetchString(),
                     sourceOfTruth: produceSourceOfTruth(
-                        storage: {'dummy': 'existingValue'}),
+                      storage: {'dummy': 'existingValue'},
+                    ),
                   );
 
                   final firstResponses = <StoreResponse<String?>>[];
@@ -133,14 +133,13 @@ void main() {
                   'it emits the result of memory cache followed by source of truth',
                   () async {
                 final subject = Store<String, String?>.from(
-                    fetch: (_) => fetchString(),
-                    sourceOfTruth: produceSourceOfTruth());
+                  fetch: (_) => fetchString(),
+                  sourceOfTruth: produceSourceOfTruth(),
+                );
 
-                // ignore: unused_local_variable
-                await for (final response
-                    in subject.stream(request: StoreRequest.fresh('dummy'))) {
-                  // Do nothing
-                }
+                await subject
+                    .stream(request: StoreRequest.fresh('dummy'))
+                    .drain();
 
                 // Memory cache is populated now
                 final responses = <StoreResponse<String?>>[];
@@ -194,11 +193,9 @@ void main() {
                   fetch: (_) => fetchString(),
                 );
 
-                // ignore: unused_local_variable
-                await for (final response
-                    in subject.stream(request: StoreRequest.fresh('dummy'))) {
-                  // Do nothing
-                }
+                await subject
+                    .stream(request: StoreRequest.fresh('dummy'))
+                    .drain();
 
                 // Memory cache is populated now
                 final responses = <StoreResponse<String>>[];
@@ -291,11 +288,9 @@ void main() {
                   sourceOfTruth: produceSourceOfTruth(),
                 );
 
-                // ignore: unused_local_variable
-                await for (final response
-                    in subject.stream(request: StoreRequest.fresh('dummy'))) {
-                  // Do nothing
-                }
+                await subject
+                    .stream(request: StoreRequest.fresh('dummy'))
+                    .drain();
 
                 // Memory cache is populated now
                 final responses = <StoreResponse<String?>>[];
@@ -413,11 +408,7 @@ void main() {
             sourceOfTruth: produceSourceOfTruth(),
           );
 
-          // ignore: unused_local_variable
-          await for (final response
-              in subject.stream(request: StoreRequest.fresh('dummy'))) {
-            // Do nothing
-          }
+          await subject.stream(request: StoreRequest.fresh('dummy')).drain();
 
           final source = await subject.cached('dummy');
 
@@ -446,11 +437,9 @@ void main() {
           sourceOfTruth: sourceOfTruth,
         );
 
-        // ignore: unused_local_variable
-        await for (final response
-            in subject.stream(request: StoreRequest.cached(key: 'dummy'))) {
-          // Do nothing
-        }
+        await subject
+            .stream(request: StoreRequest.cached(key: 'dummy'))
+            .drain();
 
         // Memory cache is populated now
         final responsesBefore = <StoreResponse<String?>>[];
@@ -501,11 +490,7 @@ void main() {
         );
 
         for (final key in ['dummy', 'rummy']) {
-          // ignore: unused_local_variable
-          await for (final response
-              in subject.stream(request: StoreRequest.cached(key: key))) {
-            // Do nothing
-          }
+          await subject.stream(request: StoreRequest.cached(key: key)).drain();
         }
 
         // Memory cache is populated now
