@@ -135,6 +135,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  gooder_store:
+    dependency: transitive
+    description:
+      path: "../store"
+      relative: true
+    source: path
+    version: "0.0.1-dev.1"
   js:
     dependency: transitive
     description:
@@ -219,13 +226,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.2.4"
-  reactive_store:
-    dependency: transitive
-    description:
-      path: "../store"
-      relative: true
-    source: path
-    version: "0.0.1-dev.1"
   rx_shared_preferences:
     dependency: "direct main"
     description:

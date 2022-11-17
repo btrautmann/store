@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:reactive_store/reactive_store.dart';
+import 'package:gooder_store/gooder_store.dart';
 
 
 void main() async {

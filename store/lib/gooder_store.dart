@@ -1,7 +1,7 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library reactive_store;
+library gooder_store;
 
 export 'src/store.dart';
 
