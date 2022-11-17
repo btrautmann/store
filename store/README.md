@@ -1,5 +1,8 @@
 # Store (Dart)
 
+[![codecov](https://codecov.io/github/btrautmann/store/branch/main/graph/badge.svg?token=2JC1RLHWH5)](https://codecov.io/github/btrautmann/store)
+[![pub](https://img.shields.io/pub/v/gooder_store.svg)](https://pub.dev/packages/gooder_store)
+
 A dart port of [Store](https://github.com/MobileNativeFoundation/Store), a library for loading data from remote and local sources.
 
 ## The goal
