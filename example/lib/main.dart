@@ -107,9 +107,6 @@ class FreshScreen extends StatelessWidget {
                                 } else if (snapshot.hasError) {
                                   return Text(Exception(snapshot.error?.toString()).toString());
                                 }
-                                // There may exist a moment in which snapshot does not have
-                                // data from the Store, but rather than clutter the public API,
-                                // simply return a shrink for now.
                                 return const SizedBox.shrink();
                               },
                             ),
@@ -132,9 +129,9 @@ class FreshScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                onPressed: () {
-                  _store.clearAll();
-                  _store.refresh('whatever');
+                onPressed: () async {
+                  await _store.clearAll();
+                  await _store.refresh('whatever');
                 },
                 child: const Text('Clear store'),
               ),
